@@ -74,8 +74,6 @@ class Banco:
                 id_usuario, nome, email, nome_usuario, senha = result
                 usuario = Usuario(nome, email, nome_usuario, senha, id_usuario)
                 return usuario
-            else:
-                return None
         except Error as e:
             print(f"Erro ao buscar o usuário: {e}")
 
@@ -88,6 +86,7 @@ class Banco:
                 query_usuario = "INSERT INTO usuario (nome, email, username, senha) VALUES (%s, %s, %s, %s)"
                 values_usuario = (usuario.nome, usuario.email, usuario.username, usuario.senha)
                 self.cursor.execute(query_usuario, values_usuario)
+                print('cadastrado')
                 self.connection.commit()
                 return True
             else:
