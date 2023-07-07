@@ -43,14 +43,8 @@ class usuario(threading.Thread):
                         
             # cadastro usuario
             elif comando[0] == 'cad_usuario':
-                usuario = Usuario(id_usuario=comando[1], nome=comando[2], email=comando[3])
-                
-                if comando[1] != '':
-                    login = Login(id_usuario=comando[1], username=comando[4], senha=comando[5])
-                else:
-                    login = Login(username=comando[4], senha=comando[5])
-                
-                success = bank.cadastrar_usuario_bd(usuario, login)
+                usuario = Usuario(id_usuario=comando[1], nome=comando[2], email=comando[3], username=comando[4], senha=comando[5])
+                success = bank.cadastrar_usuario_bd(usuario)
                 
                 if success:
                     self.con.send('1'.encode())
