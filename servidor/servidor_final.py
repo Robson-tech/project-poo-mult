@@ -43,7 +43,7 @@ class ThreadCliente(threading.Thread):
                         
             # cadastro usuario
             elif comando[0] == 'cad_usuario':
-                usuario = Usuario(id_usuario=comando[1], nome=comando[2], email=comando[3], username=comando[4], senha=comando[5])
+                usuario = Usuario(comando[1], comando[2], comando[3], comando[4])
                 success = self.bank.cadastrar_usuario_bd(usuario)
                 
                 if success:

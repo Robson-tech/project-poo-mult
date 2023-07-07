@@ -139,7 +139,7 @@ class Main(QMainWindow, Ui_main):
                 QtWidgets.QMessageBox.information(None, 'interface', f'Erro: {str(e)}')
 
     def cadastrar_usuario(self):
-        id_usuario = self.tela_cadastro_usuario.id_usuario_lineEdit_2.text()
+        # id_usuario = self.tela_cadastro_usuario.id_usuario_lineEdit_2.text()
         nome = self.tela_cadastro_usuario.nome_lineEdit.text()
         email = self.tela_cadastro_usuario.email_lineEdit.text()
         username = self.tela_cadastro_usuario.username_lineEdit.text()
@@ -149,7 +149,7 @@ class Main(QMainWindow, Ui_main):
         if not (id_usuario == '' or nome == '' or email == '' or username == '' or senha == ''):
             # Mensagem do cliente
             try:
-                mensagem = f'cad_usuario,{id_usuario},{nome},{email},{username},{senha}'
+                mensagem = f'cad_usuario,{nome},{email},{username},{senha}'
                 cliente_socket.send(mensagem.encode())
                 print('mensagem enviada')
                 recebida = cliente_socket.recv(1024).decode()
