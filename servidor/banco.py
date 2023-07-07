@@ -65,11 +65,10 @@ class Banco:
             Usuario: O objeto de usuário encontrado, ou None se não encontrado.
         """
         try:
-            cursor = self.connection.cursor()
             query = "SELECT * FROM usuario WHERE username = %s"
             values = (username,)
-            cursor.execute(query, values)
-            result = cursor.fetchone()
+            self.cursor.execute(query, values)
+            result = self.cursor.fetchone()
 
             if result:
                 id_usuario, nome, email, nome_usuario, senha = result
@@ -82,32 +81,31 @@ class Banco:
 
     def cadastrar_usuario_bd(self, usuario):
         try:
-            cursor = self.connection.cursor()
-
             # Verificar se o usuário já existe no banco de dados
             usuario_existente = self.buscar_usuario(usuario.username)
             if usuario_existente is None:
                 # Inserir o novo usuário na tabela
                 query_usuario = "INSERT INTO usuario (nome, email, username, senha) VALUES (%s, %s, %s, %s)"
                 values_usuario = (usuario.nome, usuario.email, usuario.username, usuario.senha)
-                cursor.execute(query_usuario, values_usuario)
+                self.cursor.execute(query_usuario, values_usuario)
+                self.connection.commit()
+                return True
             else:
+                print("Usuário já cadastrado.")
                 return False
         except Error as e:
             return False, f"Erro ao cadastrar o usuário: {e}"
 
-    def fazer_login(self, username, password):
+    def loginUsuario(self, username, password):
             """
             Faz o login de um usuário.
             """
             try:
-                cursor = self.connection.cursor()
-
                 # Buscar o usuário pelo nome de usuário (username) e senha
                 query = "SELECT * FROM usuario WHERE username = %s AND password = %s"
                 values = (username, password)
-                cursor.execute(query, values)
-                result = cursor.fetchone()
+                self.cursor.execute(query, values)
+                result = self.cursor.fetchone()
 
                 if result:
                     self.usuario = Usuario(result[0], result[1], result[2], result[3], result[4])
@@ -119,21 +117,6 @@ class Banco:
                     return False
             except Error as e:
                 print(f"Erro ao fazer login: {e}")
-
-    def loginUsuario(self, username, password):
-        try:
-            result = self.fazer_login(username, password)
-            self.connection.commit()
-            if result:
-                self._usuario = Usuario(username, password)
-                self.login_atual_usua = username
-                self.senha_atual_usua = password
-                return (True,)  # Return a tuple with a single element representing success
-            else:
-                return (False,)  # Return a tuple with a single element representing failure
-        except Exception as e:
-            print('Erro do servidor durante o login:', str(e))
-            return (False,)  # Return a tuple with a single element representing failur
 
     def listarTarefas(self):
         try:
