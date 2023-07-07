@@ -1,13 +1,11 @@
 from banco import Banco
 from tarefa import Tarefa
-from login import Login
 from usuario import Usuario
 
 import threading
 import socket
-bank = Banco()
 
-class usuario(threading.Thread):
+class ThreadCliente(threading.Thread):
 
     """
     Classe que representa um usuário do banco
@@ -22,6 +20,8 @@ class usuario(threading.Thread):
         threading.Thread.__init__(self)
         self.con = con
         self.adress = adress
+        self.bank = Banco()
+        print(f'Conectado com {adress}')
 
         #print('Nova conexão:',con)
 
@@ -34,7 +34,7 @@ class usuario(threading.Thread):
 
             # login do usuario
             if comando[0] == 'usuario':
-                retorno_cliente = bank.loginUsuario(comando[1], comando[2])
+                retorno_cliente = self.bank.loginUsuario(comando[1], comando[2])
                 # Other code in the run method
                 if retorno_cliente[0]:  # Assuming `retorno_cliente` is the return value of loginUsuario
                     self.con.send('1'.encode())
@@ -44,7 +44,7 @@ class usuario(threading.Thread):
             # cadastro usuario
             elif comando[0] == 'cad_usuario':
                 usuario = Usuario(id_usuario=comando[1], nome=comando[2], email=comando[3], username=comando[4], senha=comando[5])
-                success = bank.cadastrar_usuario_bd(usuario)
+                success = self.bank.cadastrar_usuario_bd(usuario)
                 
                 if success:
                     self.con.send('1'.encode())
@@ -54,7 +54,7 @@ class usuario(threading.Thread):
             # listar tarefas
             elif comando[0] == 'abrir':
                 with lock:
-                    retorno_cliente = bank.listarTarefas()
+                    retorno_cliente = self.bank.listarTarefas()
 
                 if retorno_cliente:
                     self.con.send(retorno_cliente.encode())
@@ -66,10 +66,8 @@ class usuario(threading.Thread):
                 id_tarefa = comando[1]
                 descricao = comando[2]
                 prazo = comando[3]
-                id_usuario = bank.get_id_usuario()
-                tarefa = Tarefa(id_tarefa=id_tarefa, id_usuario=id_usuario, descricao=descricao, prazo=prazo)
-                
-                sucess = bank.cadastrar_tarefas(id_tarefa, descricao, prazo, id_usuario)
+                tarefa = Tarefa(id_tarefa, descricao, prazo, self.bank.usuario.id_usuario)
+                sucess = self.bank.cadastrar_tarefas(tarefa)
 
                 if sucess:
                     self.con.send('1'.encode())
@@ -78,8 +76,7 @@ class usuario(threading.Thread):
 
             # excluir tarefa
             elif comando[0] == 'excluir_tarefa':
-                sucess = bank.excluirTarefa(descricao=comando[1], prazo=comando[2])
-
+                sucess = self.bank.excluirTarefa(comando[1])
                 if sucess:
                     self.con.send('1'.encode())
                 else:
@@ -113,11 +110,10 @@ def iniciar_servidor():
     while True:
         serv_socket.listen(10)
 
-        print('aguardando conexão...\n')
+        print('Aguardando conexão...\n')
         conexao, cliente = serv_socket.accept()
-        newthread = usuario(cliente, conexao)
+        newthread = ThreadCliente(cliente, conexao)
         newthread.start()
-        print('\nConectado')
 
 if __name__ == '__main__':
     iniciar_servidor()

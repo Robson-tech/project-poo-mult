@@ -216,10 +216,11 @@ class Main(QMainWindow, Ui_main):
 
         if item_selecionado is not None:
             descricao_prazo = item_selecionado.text().split(" - ")
-            descricao = descricao_prazo[0]
-            prazo = descricao_prazo[1]
+            id_tarefa = descricao_prazo[0]
+            # descricao = descricao_prazo[1]
+            # prazo = descricao_prazo[2]
 
-            mensagem = f"excluir_tarefa,{descricao},{prazo}"
+            mensagem = f"excluir_tarefa,{id_tarefa}"
             cliente_socket.send(mensagem.encode())
 
             # Receive response from the server

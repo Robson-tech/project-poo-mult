@@ -1,9 +1,7 @@
 #importação do banco de dados
-import sys
 import mysql.connector
 from mysql.connector import Error
 
-import threading
 # importação das classes
 from usuario import Usuario
 from tarefa import Tarefa
@@ -12,21 +10,13 @@ class Banco:
     """
     Classe responsável por manipular as tarefas.
     """
-
-    def __init__(self, lista=None, id_usuario=None):
+    def __init__(self):
         """
         Inicializa uma instância da classe ManipulaTarefas.
         """
         self.usuario = None
         self.connection = self.create_connection()
         self.cursor = self.connection.cursor()
-        self.lista = lista
-        # self.id_usuario = id_usuario
-
-        self.lock = threading.Lock()
-        
-        # self.login_atual_usua = ''
-        # self.senha_atual_usua = ''
 
     def create_connection(self):
         """
@@ -155,14 +145,14 @@ class Banco:
                 return False
 
             # Buscar as tarefas do usuário pelo ID
-            query = "SELECT descricao, prazo FROM tarefa WHERE id_usuario = %s"
+            query = "SELECT id_tarefa, descricao, prazo FROM tarefa WHERE id_usuario = %s"
             values = (self.id_usuario,)
             self.cursor.execute(query, values)
             results = self.cursor.fetchall()
 
             if results:
-                lista_tarefas = [[str(result[0]), result[1]] for result in results]
-                enviar = ",".join([f"{tarefa[0]} - {tarefa[1]}" for tarefa in lista_tarefas])
+                lista_tarefas = [[str(result[0]), result[1], result[2]] for result in results]
+                enviar = ",".join([f"{tarefa[0]} - {tarefa[1] - {tarefa[2]}}" for tarefa in lista_tarefas])
                 return enviar
             else:
                 return False
@@ -171,54 +161,29 @@ class Banco:
             print(f"Erro ao listar as tarefas: {e}")
             return False
 
-    def excluirTarefa(self, descricao, prazo):
+    def excluirTarefa(self, id_tarefa):
         try:
+            query = "DELETE FROM tarefa WHERE id_tarefa = %s"
+            values = (id_tarefa,)
+            self.cursor.execute(query, values)
             self.connection.commit()
-            selecione = "SELECT descricao, prazo, id_usuario FROM tarefa WHERE descricao = %s AND prazo = %s"
-            self.cursor.execute(selecione, (descricao, prazo,))
-            resultado = self.cursor.fetchone()
-            print('resultado:', resultado)
-
-            if resultado is not None:
-                # Armazenar as informações da tarefa excluída na lista exclusoes
-                # exclusoes.append(resultado)
-                
-                # Excluir a tarefa do banco de dados
-                query = "DELETE FROM tarefa WHERE descricao = %s AND prazo = %s"
-                values = (resultado[0], resultado[1])
-                self.cursor.execute(query, values)
-                self.connection.commit()
-                print('excluido')
-                return True
-            else:
-                return False
+            print('excluido')
+            return True
         except Error as e:
             print(f"Erro ao excluir a tarefa: {e}")
+            return False
 
-    def cadastrar_tarefas(self, id_tarefa, descricao, prazo):
+    def cadastrar_tarefas(self, tarefa):
+        if self.usuario is None:
+            print("Usuário não logado.")
+            return False
         try:
-            cursor = self.connection.cursor()
-            self.connection.commit()
-
-            if self.usuario is None:
-                print("\nUsuário não encontrado.")
-                return False
-    
             # Inserir a nova tarefa na tabela
             query_tarefa = "INSERT INTO tarefa (id_tarefa, descricao, prazo, email, id_usuario) " \
                         "VALUES (%s, %s, %s, %s, %s)"
-            values_tarefa = (id_tarefa, descricao, prazo, self.usuario.email, self.usuario.id_usuario)
-            try:
-                # utilizando o cursor para executar a inserção no banco de dados
-                self.cursor.execute(query_tarefa, values_tarefa)
-                self.connection.commit()
-                # confirmar a inserção
-                return True
-            except mysql.connector.errors.IntegrityError:
-                return False
-            # else:
-            #     enviar = '0'
-            #     conexao_servidor.send(enviar.encode())
+            values_tarefa = (tarefa.id_tarefa, tarefa.descricao, tarefa.prazo, self.usuario.email, self.usuario.id_usuario)
+            self.cursor.execute(query_tarefa, values_tarefa)
+            self.connection.commit()
         except Error as e:
             return False, f"Erro ao cadastrar a tarefa: {e}"
 
