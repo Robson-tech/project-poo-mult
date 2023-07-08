@@ -87,8 +87,8 @@ class Banco:
                 query_usuario = "INSERT INTO usuario (nome, email, username, password) VALUES (%s, %s, %s, %s)"
                 values_usuario = (usuario.nome, usuario.email, usuario.username, usuario.senha)
                 self.cursor.execute(query_usuario, values_usuario)
-                print('cadastrado')
                 self.connection.commit()
+                print(f'Usuario {usuario.username} cadastrado com sucesso!')
                 return True
             else:
                 print("Usuário já cadastrado.")
@@ -109,40 +109,30 @@ class Banco:
                 result = self.cursor.fetchone()
 
                 if result:
-                    self.usuario = Usuario(result[0], result[1], result[2], result[3], result[4])
-                    print("\nLogin bem-sucedido!")
-                    # print(usuario)
+                    self.usuario = Usuario(result[1], result[2], result[3], result[4], id_usuario=result[0])
+                    print("Login bem-sucedido!")
                     return True
                 else:
-                    print("\nCredenciais inválidas.")
+                    print("Credenciais inválidas.")
                     return False
             except Error as e:
                 print(f"Erro ao fazer login: {e}")
 
-    def listarTarefas(self):
+    def cadastrar_tarefas(self, tarefa):
+        if self.usuario is None:
+            print("Usuário não logado.")
+            return False
         try:
-            self.cursor = self.connection.cursor()
-
-            # Verificar se o usuário existe no banco de dados
-            if self.id_usuario is None:
-                print("\nUsuário não encontrado.")
-                return False
-
-            # Buscar as tarefas do usuário pelo ID
-            query = "SELECT id_tarefa, descricao, prazo FROM tarefa WHERE id_usuario = %s"
-            values = (self.id_usuario,)
-            self.cursor.execute(query, values)
-            results = self.cursor.fetchall()
-
-            if results:
-                lista_tarefas = [[str(result[0]), result[1], result[2]] for result in results]
-                enviar = ",".join([f"{tarefa[0]} - {tarefa[1] - {tarefa[2]}}" for tarefa in lista_tarefas])
-                return enviar
-            else:
-                return False
-            
+            # Inserir a nova tarefa na tabela
+            query_tarefa = "INSERT INTO tarefa (titulo, descricao, prazo, id_usuario) " \
+                        "VALUES (%s, %s, %s, %s)"
+            values_tarefa = (tarefa.titulo, tarefa.descricao, tarefa.prazo, self.usuario.id_usuario)
+            self.cursor.execute(query_tarefa, values_tarefa)
+            self.connection.commit()
+            print(f"Tarefa {tarefa.titulo} cadastrada com sucesso!")
+            return True
         except Error as e:
-            print(f"Erro ao listar as tarefas: {e}")
+            print(f"Erro ao cadastrar a tarefa: {e}")
             return False
 
     def excluirTarefa(self, id_tarefa):
@@ -151,28 +141,40 @@ class Banco:
             values = (id_tarefa,)
             self.cursor.execute(query, values)
             self.connection.commit()
-            print('excluido')
+            print(f"Tarefa {id_tarefa} excluída com sucesso!")
             return True
         except Error as e:
             print(f"Erro ao excluir a tarefa: {e}")
             return False
 
-    def cadastrar_tarefas(self, tarefa):
-        if self.usuario is None:
-            print("Usuário não logado.")
-            return False
+    def listarTarefas(self):
         try:
-            # Inserir a nova tarefa na tabela
-            query_tarefa = "INSERT INTO tarefa (id_tarefa, descricao, prazo, email, id_usuario) " \
-                        "VALUES (%s, %s, %s, %s, %s)"
-            values_tarefa = (tarefa.id_tarefa, tarefa.descricao, tarefa.prazo, self.usuario.email, self.usuario.id_usuario)
-            self.cursor.execute(query_tarefa, values_tarefa)
-            self.connection.commit()
+            # Verificar se o usuário existe no banco de dados
+            if self.usuario is None:
+                print("Usuário não logado.")
+                return False
+
+            # Buscar as tarefas do usuário pelo ID
+            query = "SELECT id_tarefa, titulo, descricao, prazo FROM tarefa WHERE id_usuario = %s"
+            values = (self.usuario.id_usuario,)
+            self.cursor.execute(query, values)
+            results = self.cursor.fetchall()
+
+            if results:
+                enviar = ''
+                for result in results:
+                    enviar += f'{result[0]} - {result[1]} - {result[2]} - {result[3]};'
+                return enviar
+            else:
+                return False
+            
         except Error as e:
-            return False, f"Erro ao cadastrar a tarefa: {e}"
+            print(f"Erro ao listar as tarefas: {e}")
+            return False
 
 
 if __name__ == "__main__":
     banco = Banco()
-    banco.create_connection()
+    banco.loginUsuario('robson2023', '1111')
+    banco.cadastrar_tarefas(Tarefa('Tarefa 1', 'Descrição da tarefa 1', '2021-10-10', banco.usuario.id_usuario))
     banco.close_connection()

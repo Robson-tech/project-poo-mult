@@ -3,7 +3,7 @@ class Tarefa:
     Classe que representa uma tarefa.
     """
 
-    def __init__(self, id_tarefa, descricao, prazo, id_usuario):
+    def __init__(self, titulo, descricao, prazo, id_usuario, id_tarefa=None):
         """
         Inicializa uma instância da classe Tarefa.
 
@@ -15,6 +15,7 @@ class Tarefa:
         """
         
         self.id_tarefa = id_tarefa
+        self.titulo = titulo
         self.descricao = descricao
         self.prazo = prazo
         self.id_usuario = id_usuario

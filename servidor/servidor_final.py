@@ -63,10 +63,10 @@ class ThreadCliente(threading.Thread):
 
             # cadastro tarefa
             elif comando[0] == 'cad_tarefa':
-                id_tarefa = comando[1]
+                titulo = comando[1]
                 descricao = comando[2]
                 prazo = comando[3]
-                tarefa = Tarefa(id_tarefa, descricao, prazo, self.bank.usuario.id_usuario)
+                tarefa = Tarefa(titulo, descricao, prazo, self.bank.usuario.id_usuario)
                 sucess = self.bank.cadastrar_tarefas(tarefa)
 
                 if sucess:
@@ -76,7 +76,7 @@ class ThreadCliente(threading.Thread):
 
             # excluir tarefa
             elif comando[0] == 'excluir_tarefa':
-                sucess = self.bank.excluirTarefa(comando[1])
+                sucess = self.bank.excluirTarefa(self.bank.usuario.id_usuario)
                 if sucess:
                     self.con.send('1'.encode())
                 else:
