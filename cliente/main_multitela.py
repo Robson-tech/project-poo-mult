@@ -9,7 +9,7 @@ from tela_buscar_tarefa import Tela_buscar_tarefa
 from datetime import datetime
 
 import socket
-ip = '10.180.47.77'
+ip = 'LOCALHOST'
 port = 9013
 addr = ((ip, port))
 

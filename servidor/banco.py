@@ -29,8 +29,9 @@ class Banco:
             connection = mysql.connector.connect(
                 host='localhost',
                 user='root',
-                password='C0mpL3xP@$$',
+                password='1234',
                 database='project_tarefa',
+                auth_plugin='mysql_native_password'
             )
             return connection
         except Error as e:
@@ -83,7 +84,7 @@ class Banco:
             usuario_existente = self.buscar_usuario(usuario.username)
             if usuario_existente is None:
                 # Inserir o novo usuário na tabela
-                query_usuario = "INSERT INTO usuario (nome, email, username, senha) VALUES (%s, %s, %s, %s)"
+                query_usuario = "INSERT INTO usuario (nome, email, username, password) VALUES (%s, %s, %s, %s)"
                 values_usuario = (usuario.nome, usuario.email, usuario.username, usuario.senha)
                 self.cursor.execute(query_usuario, values_usuario)
                 print('cadastrado')
@@ -93,7 +94,8 @@ class Banco:
                 print("Usuário já cadastrado.")
                 return False
         except Error as e:
-            return False, f"Erro ao cadastrar o usuário: {e}"
+            print(f"Erro ao cadastrar o usuário: {e}")
+            return False
 
     def loginUsuario(self, username, password):
             """

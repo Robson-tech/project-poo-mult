@@ -36,7 +36,7 @@ class ThreadCliente(threading.Thread):
             if comando[0] == 'usuario':
                 retorno_cliente = self.bank.loginUsuario(comando[1], comando[2])
                 # Other code in the run method
-                if retorno_cliente[0]:  # Assuming `retorno_cliente` is the return value of loginUsuario
+                if retorno_cliente:  # Assuming `retorno_cliente` is the return value of loginUsuario
                     self.con.send('1'.encode())
                 else:
                     self.con.send('0'.encode())
@@ -95,7 +95,7 @@ def iniciar_servidor():
     return
         None
     """
-    ip = '10.180.47.77'
+    ip = 'LOCALHOST'
     port = 9013
 
     addr = ((ip, port)) # define a tupla de endereço
