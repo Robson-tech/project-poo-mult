@@ -36,7 +36,7 @@ class ThreadCliente(threading.Thread):
             if comando[0] == 'usuario':
                 retorno_cliente = self.bank.loginUsuario(comando[1], comando[2])
                 # Other code in the run method
-                if retorno_cliente:  # Assuming `retorno_cliente` is the return value of loginUsuario
+                if retorno_cliente[0]:  # Assuming `retorno_cliente` is the return value of loginUsuario
                     self.con.send('1'.encode())
                 else:
                     self.con.send('0'.encode())
@@ -63,10 +63,10 @@ class ThreadCliente(threading.Thread):
 
             # cadastro tarefa
             elif comando[0] == 'cad_tarefa':
-                titulo = comando[1]
+                id_tarefa = comando[1]
                 descricao = comando[2]
                 prazo = comando[3]
-                tarefa = Tarefa(titulo, descricao, prazo, self.bank.usuario.id_usuario)
+                tarefa = Tarefa(id_tarefa, descricao, prazo, self.bank.usuario.id_usuario)
                 sucess = self.bank.cadastrar_tarefas(tarefa)
 
                 if sucess:
@@ -76,7 +76,7 @@ class ThreadCliente(threading.Thread):
 
             # excluir tarefa
             elif comando[0] == 'excluir_tarefa':
-                sucess = self.bank.excluirTarefa(self.bank.usuario.id_usuario)
+                sucess = self.bank.excluirTarefa(comando[1])
                 if sucess:
                     self.con.send('1'.encode())
                 else:
@@ -95,7 +95,7 @@ def iniciar_servidor():
     return
         None
     """
-    ip = 'LOCALHOST'
+    ip = '10.180.47.77'
     port = 9013
 
     addr = ((ip, port)) # define a tupla de endereço
