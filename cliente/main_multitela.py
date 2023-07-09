@@ -9,7 +9,7 @@ from tela_buscar_tarefa import Tela_buscar_tarefa
 from datetime import datetime
 
 import socket
-ip = '10.180.47.77'
+ip = 'LOCALHOST'
 port = 9013
 addr = ((ip, port))
 
@@ -76,17 +76,17 @@ class Main(QMainWindow, Ui_main):
         self.tela_buscar_tarefa.excluir_tarefa_Button.clicked.connect(self.excluir_tarefa_linha)
         self.tela_buscar_tarefa.excluir_tarefa_Button_2.clicked.connect(self.abrir_tela_inicial)
 
+    def abrir_tela_login(self):
+        self.QtStack.setCurrentIndex(0)
+
     def abrir_tela_inicial(self):
         self.QtStack.setCurrentIndex(1)
-
-    def abrir_tela_cadastro_tarefa(self):
-        self.QtStack.setCurrentIndex(3)
 
     def abrir_tela_cadastro_usuario(self):
         self.QtStack.setCurrentIndex(2)
 
-    def abrir_tela_login(self):
-        self.QtStack.setCurrentIndex(0)
+    def abrir_tela_cadastro_tarefa(self):
+        self.QtStack.setCurrentIndex(3)
     
     # Função de buscar a tarefa - botao
     def abrir_tela_buscar_tarefa(self):
@@ -99,14 +99,14 @@ class Main(QMainWindow, Ui_main):
 
         # Receive the list of tasks from the server
         recebida = cliente_socket.recv(1024).decode()
-        print(recebida)
         
         if recebida == '0':
             QMessageBox.warning(self, "Buscar Tarefa", "Erro ao obter a lista de tarefas.")
         else:
-            lista = recebida.split(",")
+            lista = recebida.split(";")
             for item in lista:
-                self.tela_buscar_tarefa.campo_list_widget.addItem(item)
+                if item != "":
+                    self.tela_buscar_tarefa.campo_list_widget.addItem(item)
                         
     def sair(self):
         mensagem = 'sair'
@@ -139,24 +139,22 @@ class Main(QMainWindow, Ui_main):
                 QtWidgets.QMessageBox.information(None, 'interface', f'Erro: {str(e)}')
 
     def cadastrar_usuario(self):
-        # id_usuario = self.tela_cadastro_usuario.id_usuario_lineEdit_2.text()
         nome = self.tela_cadastro_usuario.nome_lineEdit.text()
         email = self.tela_cadastro_usuario.email_lineEdit.text()
         username = self.tela_cadastro_usuario.username_lineEdit.text()
         senha = self.tela_cadastro_usuario.password_lineEdit.text()
 
         # Verificar se todos os dados foram preenchidos
-        if not (id_usuario == '' or nome == '' or email == '' or username == '' or senha == ''):
+        if not (nome == '' or email == '' or username == '' or senha == ''):
             # Mensagem do cliente
             try:
-                mensagem = f'cad_usuario,{nome},{email},{username},{senha}'
+                mensagem = f'cad_usuario,{nome},{username},{email},{senha}'
                 cliente_socket.send(mensagem.encode())
                 print('mensagem enviada')
                 recebida = cliente_socket.recv(1024).decode()
                 if recebida == '1':
                     QtWidgets.QMessageBox.information(None, 'interface', 'Cadastro realizado com sucesso!')
                     # Limpar os dados
-                    self.tela_cadastro_usuario.id_usuario_lineEdit_2.setText('')
                     self.tela_cadastro_usuario.nome_lineEdit.setText('')
                     self.tela_cadastro_usuario.email_lineEdit.setText('')
                     self.tela_cadastro_usuario.username_lineEdit.setText('')
@@ -172,12 +170,12 @@ class Main(QMainWindow, Ui_main):
             QtWidgets.QMessageBox.information(None, 'interface', 'Cadastro não realizado! Informe todos os campos.')
 
     def cadastrar_tarefa(self):
-        id_tarefa = self.tela_cadastro_tarefa.idtarefa_lineEdit.text()
+        titulo = self.tela_cadastro_tarefa.idtarefa_lineEdit.text()
         descricao = self.tela_cadastro_tarefa.descricao_textEdit.toPlainText()
         prazo = self.tela_cadastro_tarefa.prazo_lineEdit.text() 
 
         # Verificar se todos os dados foram preenchidos
-        if id_tarefa and descricao and prazo:
+        if titulo and descricao and prazo:
             try:
                 # Verificar o formato da data
                 try: 
@@ -187,7 +185,7 @@ class Main(QMainWindow, Ui_main):
                     return
 
                 # Mensagem do cliente
-                mensagem = f'cad_tarefa,{id_tarefa},{descricao},{prazo}'
+                mensagem = f'cad_tarefa,{titulo},{descricao},{prazo}'
                 cliente_socket.send(mensagem.encode()) #  utilizado para codificar a string da mensagem em bytes
                 print('mensagem enviada')
                 recebida = cliente_socket.recv(1024).decode()
@@ -215,8 +213,7 @@ class Main(QMainWindow, Ui_main):
         item_selecionado = self.tela_buscar_tarefa.campo_list_widget.currentItem()
 
         if item_selecionado is not None:
-            descricao_prazo = item_selecionado.text().split(" - ")
-            id_tarefa = descricao_prazo[0]
+            id_tarefa = item_selecionado.text().split(" - ")[0]
             # descricao = descricao_prazo[1]
             # prazo = descricao_prazo[2]
 
@@ -264,5 +261,4 @@ if __name__ == '__main__':
     import sys
     app = QtWidgets.QApplication(sys.argv)
     main = Main()
-    main.show()
     sys.exit(app.exec_())
